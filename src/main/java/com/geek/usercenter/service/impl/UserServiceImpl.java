@@ -5,11 +5,13 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.geek.usercenter.entity.User;
 import com.geek.usercenter.service.UserService;
 import com.geek.usercenter.mapper.UserMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.regex.Pattern;
 
 /**
@@ -19,12 +21,14 @@ import java.util.regex.Pattern;
  */
 
 @Service
+@Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         implements UserService{
 
 
+    private String USER_LOGIN_STATE = "userLoginState";
 
-    
+    private static final String SALT = "geek";
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -52,7 +56,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
 
-        String SALT = "geek";
+
         String newUserPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
         User user = new User();
         user.setUserAccount(userAccount);
@@ -73,5 +77,45 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
 
 
+    }
+
+   @Override
+    public User userLogin(String userAccount, String userPassword, HttpServletRequest request) {
+        if(StringUtils.isAnyBlank(userAccount, userPassword)){
+            return null;
+        }
+        if(userAccount.length() < 4){
+            return null;
+        }
+        if(userPassword.length() < 8){
+            return null;
+        }
+
+        String validPattern = "^[a-zA-Z0-9]+$";
+        if (!userAccount.matches(validPattern)) {
+            return null;
+        }
+
+        String newUserPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
+        User user = query().eq("userAccount", userAccount).eq("userPassword", newUserPassword).one();
+        if(user == null){
+            log.info("user login failed,userAccount can not match userPassword");
+            return null ;
+        }
+        User safeUser = new User();
+        safeUser.setId(user.getId());
+        safeUser.setUserName(user.getUserName());
+        safeUser.setUserAccount(user.getUserAccount());
+        safeUser.setGender(user.getGender());
+        safeUser.setAvatarUrl(user.getAvatarUrl());
+        safeUser.setEmail(user.getEmail());
+        safeUser.setPhone(user.getPhone());
+        safeUser.setStatus(0);
+        safeUser.setCreateTime(user.getCreateTime());
+
+
+
+        request.getSession().setAttribute(USER_LOGIN_STATE, safeUser);
+        return safeUser;
     }
 }
