@@ -1,5 +1,6 @@
 package com.geek.usercenter.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.geek.usercenter.entity.User;
 import com.geek.usercenter.requestDTO.UserLoginDTO;
 import com.geek.usercenter.requestDTO.UserRegisterDTO;
@@ -13,6 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static constant.UserConstant.ADMIN_ROLE;
+import static constant.UserConstant.USER_LOGIN_STATE;
 
 @RestController
 @Slf4j
@@ -49,5 +56,44 @@ public class UserController {
         }
         User user = userService.userLogin(userAccount, userPassword, request);
         return user;
+    }
+
+    @PostMapping("/search")
+    public List<User> searchUsers(String userName, HttpServletRequest request){
+        boolean admin = isAdmin(request);
+        if(!admin){
+            return new ArrayList<>();
+        }
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        if(StringUtils.isNotBlank(userName)){
+            queryWrapper.like("userName", userName);
+        }
+        List<User> list = userService.list(queryWrapper);
+        List<User> safeList = list.stream().map(user -> {
+                    return userService.getSafeUser(user);
+                }
+        ).collect(Collectors.toList());
+        return safeList;
+    }
+
+    @PostMapping("/delete")
+    public boolean deleteUser(@RequestBody long id,HttpServletRequest request){
+        boolean admin = isAdmin(request);
+        if(!admin){
+            return false;
+        }
+        if(id <= 0){
+            return false;
+        }
+        return userService.removeById(id);
+    }
+
+
+    private boolean isAdmin(HttpServletRequest request) {
+        User user = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (user == null || user.getUserRole() != ADMIN_ROLE) {
+            return false;
+        }
+        return true;
     }
 }

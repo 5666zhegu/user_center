@@ -5,10 +5,11 @@ spring:
     active: dev
   datasource:
     driver-class-name: ${spring.datasource.driver-class-name}
-    # 和 JDBC 测试的 URL 完全一致
     url: ${spring.datasource.url}
     username: ${spring.datasource.username}
-    password: ${spring.datasource.password}  # 确保和 JDBC 测试的密码一致
+    password: ${spring.datasource.password}
+  session:
+    timeout: 86400
 
 server:
   port: ${server.port}

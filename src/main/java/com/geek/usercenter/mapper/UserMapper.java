@@ -1,7 +1,7 @@
 package com.geek.usercenter.mapper;
 
-import com.geek.usercenter.entity.User;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.geek.usercenter.entity.User;
 
 /**
 * @author Prosper

@@ -1,5 +1,4 @@
 package com.geek.usercenter.service.impl;
-import java.util.Date;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.geek.usercenter.entity.User;
@@ -10,9 +9,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.regex.Pattern;
+
+import static constant.UserConstant.USER_LOGIN_STATE;
 
 /**
  * @author Prosper
@@ -24,9 +23,6 @@ import java.util.regex.Pattern;
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         implements UserService{
-
-
-    private String USER_LOGIN_STATE = "userLoginState";
 
     private static final String SALT = "geek";
 
@@ -55,8 +51,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             return -1;
         }
 
-
-
         String newUserPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
         User user = new User();
         user.setUserAccount(userAccount);
@@ -66,14 +60,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             return -1;
         }
         return user.getId();
-
-
-
-
-
-
-
-
 
 
 
@@ -102,6 +88,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             log.info("user login failed,userAccount can not match userPassword");
             return null ;
         }
+       User safeUser = getSafeUser(user);
+
+
+       request.getSession().setAttribute(USER_LOGIN_STATE, safeUser);
+        return safeUser;
+    }
+
+     /**
+     * 获取脱敏用户
+     * @param user
+     * @return
+     */
+    @Override
+    public User getSafeUser(User user){
         User safeUser = new User();
         safeUser.setId(user.getId());
         safeUser.setUserName(user.getUserName());
@@ -110,12 +110,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safeUser.setAvatarUrl(user.getAvatarUrl());
         safeUser.setEmail(user.getEmail());
         safeUser.setPhone(user.getPhone());
-        safeUser.setStatus(0);
+        safeUser.setStatus(user.getStatus());
+        safeUser.setUserRole(user.getUserRole());
         safeUser.setCreateTime(user.getCreateTime());
-
-
-
-        request.getSession().setAttribute(USER_LOGIN_STATE, safeUser);
         return safeUser;
     }
 }

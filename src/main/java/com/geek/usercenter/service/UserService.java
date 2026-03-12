@@ -1,10 +1,9 @@
 package com.geek.usercenter.service;
 
-import com.geek.usercenter.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.geek.usercenter.entity.User;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
 * @author Prosper
@@ -12,6 +11,9 @@ import javax.servlet.http.HttpServletResponse;
 * @createDate 2026-03-11 21:25:50
 */
 public interface UserService extends IService<User> {
+    /**
+     * 用户登录态的key
+     */
 
     /**
      * 用户注册
@@ -30,4 +32,12 @@ public interface UserService extends IService<User> {
      * @return
      */
     User userLogin(String userAccount, String userPassword, HttpServletRequest request);
+
+    /**
+     * 获取脱敏用户
+     * @param originUser
+     * @return
+     */
+    User getSafeUser(User originUser);
+
 }
