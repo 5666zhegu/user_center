@@ -13,18 +13,55 @@ import javax.annotation.Resource;
 import java.util.regex.Pattern;
 
 /**
-* @author Prosper
-* @description 针对表【user(用户表)】的数据库操作Service实现
-* @createDate 2026-03-11 21:25:50
-*/
+ * @author Prosper
+ * @description 针对表【user(用户表)】的数据库操作Service实现
+ * @createDate 2026-03-11 21:25:50
+ */
 
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
-    implements UserService{
+        implements UserService{
 
 
 
+    
 
+    @Override
+    public long userRegister(String userAccount, String userPassword, String checkPassword) {
+        if(StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)){
+            return -1;
+        }
+        if(userAccount.length() < 4){
+            return -1;
+        }
+        if(userPassword.length() < 8 || checkPassword.length() < 8){
+            return -1;
+        }
+
+        if(!userPassword.equals(checkPassword)){
+            return -1;
+        }
+
+        String validPattern = "^[a-zA-Z0-9]+$";
+        if (!userAccount.matches(validPattern)) {
+            return -1;
+        }
+
+        if(query().eq("userAccount", userAccount).count() > 0){
+            return -1;
+        }
+
+
+        String SALT = "geek";
+        String newUserPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
+        User user = new User();
+        user.setUserAccount(userAccount);
+        user.setUserPassword(newUserPassword);
+        boolean save = this.save(user);
+        if(!save){
+            return -1;
+        }
+        return user.getId();
 
 
 
@@ -37,8 +74,4 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
 
     }
-
-
-
-
-
+}
