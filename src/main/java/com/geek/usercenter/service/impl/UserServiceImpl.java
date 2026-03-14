@@ -102,6 +102,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     @Override
     public User getSafeUser(User user){
+        if(user == null){
+            return null;
+        }
         User safeUser = new User();
         safeUser.setId(user.getId());
         safeUser.setUserName(user.getUserName());
@@ -110,7 +113,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safeUser.setAvatarUrl(user.getAvatarUrl());
         safeUser.setEmail(user.getEmail());
         safeUser.setPhone(user.getPhone());
-        safeUser.setStatus(user.getStatus());
+        safeUser.setUserStatus(user.getUserStatus());
         safeUser.setUserRole(user.getUserRole());
         safeUser.setCreateTime(user.getCreateTime());
         return safeUser;

@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="generator.mapper.UserMapper">
+<mapper namespace="com.geek.usercenter.mapper.UserMapper">
 
     <resultMap id="BaseResultMap" type="com.geek.usercenter.entity.User">
             <id property="id" column="id" />
@@ -14,7 +14,7 @@
             <result property="email" column="email" />
             <result property="phone" column="phone" />
             <result property="userRole" column="userRole" />
-            <result property="status" column="status" />
+            <result property="userStatus" column="userStatus" />
             <result property="createTime" column="createTime" />
             <result property="updateTime" column="updateTime" />
             <result property="isDelete" column="isDelete" />
@@ -22,7 +22,7 @@
 
     <sql id="Base_Column_List">
         id,userName,userAccount,gender,userPassword,avatarUrl,
-        email,phone,userRole,status,createTime,
+        email,phone,userRole,userStatus,createTime,
         updateTime,isDelete
     </sql>
 </mapper>

@@ -56,7 +56,7 @@ public class User implements Serializable {
     /**
      * 账号状态
      */
-    private Integer status;
+    private Integer userStatus;
 
     /**
      * 创建时间

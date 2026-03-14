@@ -7,10 +7,7 @@ import com.geek.usercenter.requestDTO.UserRegisterDTO;
 import com.geek.usercenter.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -42,6 +39,20 @@ public class UserController {
 
         long id = userService.userRegister(userAccount, userPassword, checkPassword);
         return id;
+    }
+
+    @GetMapping("/current")
+    public User getCurrent(HttpServletRequest request){
+        Object attribute = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User currentUser = (User) attribute;
+        if(currentUser == null){
+            return null;
+        }
+        Long id = currentUser.getId();
+        //TODO 检查该账号的状态是否为异常
+        User user = userService.getById(id);
+        return userService.getSafeUser(user);
+
     }
 
     @PostMapping("/login")

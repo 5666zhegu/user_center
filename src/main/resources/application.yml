@@ -13,6 +13,8 @@ spring:
 
 server:
   port: ${server.port}
+  servlet:
+      context-path: /api
 
 mybatis-plus:
   configuration:
