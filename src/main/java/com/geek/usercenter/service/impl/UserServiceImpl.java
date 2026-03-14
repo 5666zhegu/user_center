@@ -1,7 +1,9 @@
 package com.geek.usercenter.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.geek.usercenter.common.ErrorCode;
 import com.geek.usercenter.entity.User;
+import com.geek.usercenter.exception.BusinessException;
 import com.geek.usercenter.service.UserService;
 import com.geek.usercenter.mapper.UserMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -27,8 +29,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     private static final String SALT = "geek";
 
     @Override
-    public long userRegister(String userAccount, String userPassword, String checkPassword) {
-        if(StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)){
+    public long userRegister(String userAccount, String userPassword, String checkPassword, String planetCode) {
+        if(StringUtils.isAnyBlank(userAccount, userPassword, checkPassword,planetCode)){
             return -1;
         }
         if(userAccount.length() < 4){
@@ -41,6 +43,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if(!userPassword.equals(checkPassword)){
             return -1;
         }
+        if(planetCode.length() > 5){
+            return -1;
+        }
 
         String validPattern = "^[a-zA-Z0-9]+$";
         if (!userAccount.matches(validPattern)) {
@@ -48,6 +53,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
         if(query().eq("userAccount", userAccount).count() > 0){
+            return -1;
+        }
+
+        if(query().eq("planetCode", planetCode).count() > 0){
             return -1;
         }
 
@@ -68,25 +77,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
    @Override
     public User userLogin(String userAccount, String userPassword, HttpServletRequest request) {
         if(StringUtils.isAnyBlank(userAccount, userPassword)){
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"传入数据为空");
         }
         if(userAccount.length() < 4){
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"传入账号长度过短");
         }
         if(userPassword.length() < 8){
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"传入密码过短");
         }
 
         String validPattern = "^[a-zA-Z0-9]+$";
         if (!userAccount.matches(validPattern)) {
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"传入账号参数异常");
         }
 
         String newUserPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
         User user = query().eq("userAccount", userAccount).eq("userPassword", newUserPassword).one();
         if(user == null){
             log.info("user login failed,userAccount can not match userPassword");
-            return null ;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"账号或密码错误");
         }
        User safeUser = getSafeUser(user);
 
@@ -116,6 +125,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safeUser.setUserStatus(user.getUserStatus());
         safeUser.setUserRole(user.getUserRole());
         safeUser.setCreateTime(user.getCreateTime());
+        safeUser.setPlanetCode(user.getPlanetCode());
         return safeUser;
+    }
+
+    @Override
+    public int logout(HttpServletRequest request) {
+        request.getSession().removeAttribute(USER_LOGIN_STATE);
+        return 1;
     }
 }

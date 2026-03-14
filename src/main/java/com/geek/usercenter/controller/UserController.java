@@ -1,7 +1,11 @@
 package com.geek.usercenter.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.geek.usercenter.common.BaseResponse;
+import com.geek.usercenter.common.ErrorCode;
+import com.geek.usercenter.common.ResultUtils;
 import com.geek.usercenter.entity.User;
+import com.geek.usercenter.exception.BusinessException;
 import com.geek.usercenter.requestDTO.UserLoginDTO;
 import com.geek.usercenter.requestDTO.UserRegisterDTO;
 import com.geek.usercenter.service.UserService;
@@ -11,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,54 +29,65 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/register")
-    public Long userRegister(@RequestBody UserRegisterDTO userRegisterDTO){
+    public BaseResponse<Long> userRegister(@RequestBody UserRegisterDTO userRegisterDTO){
         if(userRegisterDTO == null){
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"传入数据为空");
         }
         String userAccount = userRegisterDTO.getUserAccount();
         String userPassword = userRegisterDTO.getUserPassword();
         String checkPassword = userRegisterDTO.getCheckPassword();
-        if(StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)){
-            return null;
+        String planetCode = userRegisterDTO.getPlanetCode();
+        if(StringUtils.isAnyBlank(userAccount, userPassword, checkPassword,planetCode)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"传入数据为空");
         }
 
-        long id = userService.userRegister(userAccount, userPassword, checkPassword);
-        return id;
+        long id = userService.userRegister(userAccount, userPassword, checkPassword,planetCode);
+        return ResultUtils.success(id);
     }
 
     @GetMapping("/current")
-    public User getCurrent(HttpServletRequest request){
+    public BaseResponse<User> getCurrent(HttpServletRequest request){
         Object attribute = request.getSession().getAttribute(USER_LOGIN_STATE);
         User currentUser = (User) attribute;
         if(currentUser == null){
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"没有找到登陆状态");
         }
         Long id = currentUser.getId();
         //TODO 检查该账号的状态是否为异常
         User user = userService.getById(id);
-        return userService.getSafeUser(user);
+        User safeUser = userService.getSafeUser(user);
+        return ResultUtils.success(safeUser);
 
     }
 
     @PostMapping("/login")
-    public User userLogin(@RequestBody UserLoginDTO userLoginDTO,HttpServletRequest request){
+    public BaseResponse<User> userLogin(@RequestBody UserLoginDTO userLoginDTO,HttpServletRequest request){
         if(userLoginDTO == null){
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"传入数据为空");
         }
         String userAccount = userLoginDTO.getUserAccount();
         String userPassword = userLoginDTO.getUserPassword();
         if(StringUtils.isAnyBlank(userAccount, userPassword)){
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"传入数据为空");
         }
         User user = userService.userLogin(userAccount, userPassword, request);
-        return user;
+        return ResultUtils.success(user);
+    }
+
+    @PostMapping("logout")
+    public BaseResponse<Integer> logout(HttpServletRequest request){
+        if(request == null){
+            throw new BusinessException(ErrorCode.NULL_ERROR,"传入请求为空");
+        }
+        int logout = userService.logout(request);
+        return ResultUtils.success(logout);
     }
 
     @PostMapping("/search")
-    public List<User> searchUsers(String userName, HttpServletRequest request){
+    public BaseResponse<List<User>> searchUsers(String userName, HttpServletRequest request){
         boolean admin = isAdmin(request);
         if(!admin){
-            return new ArrayList<>();
+            throw new BusinessException(ErrorCode.NO_AUTH,"未授权，不能执行");
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         if(StringUtils.isNotBlank(userName)){
@@ -84,26 +98,26 @@ public class UserController {
                     return userService.getSafeUser(user);
                 }
         ).collect(Collectors.toList());
-        return safeList;
+        return ResultUtils.success(safeList);
     }
 
     @PostMapping("/delete")
-    public boolean deleteUser(@RequestBody long id,HttpServletRequest request){
+    public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request){
         boolean admin = isAdmin(request);
         if(!admin){
-            return false;
+            throw new BusinessException(ErrorCode.NO_AUTH,"未授权，不能执行");
         }
         if(id <= 0){
-            return false;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"传入数据异常");
         }
-        return userService.removeById(id);
+        return ResultUtils.success(userService.removeById(id));
     }
 
 
     private boolean isAdmin(HttpServletRequest request) {
         User user = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (user == null || user.getUserRole() != ADMIN_ROLE) {
-            return false;
+            throw new BusinessException(ErrorCode.NO_AUTH,"未授权，不能执行");
         }
         return true;
     }

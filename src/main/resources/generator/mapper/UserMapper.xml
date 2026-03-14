@@ -18,11 +18,12 @@
             <result property="createTime" column="createTime" />
             <result property="updateTime" column="updateTime" />
             <result property="isDelete" column="isDelete" />
+            <result property="planetCode" column="planetCode" />
     </resultMap>
 
     <sql id="Base_Column_List">
         id,userName,userAccount,gender,userPassword,avatarUrl,
         email,phone,userRole,userStatus,createTime,
-        updateTime,isDelete
+        updateTime,isDelete,planetCode
     </sql>
 </mapper>

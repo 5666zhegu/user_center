@@ -15,4 +15,6 @@ public class UserRegisterDTO implements Serializable {
     private String userPassword;
 
     private String checkPassword;
+
+    private String planetCode;
 }
