@@ -2,6 +2,8 @@ package com.geek.usercenter.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.geek.usercenter.entity.User;
+import com.geek.usercenter.requestDTO.UserUpdateDTO;
+import com.geek.usercenter.requestDTO.UserUpdatePasswordDTO;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -23,8 +25,7 @@ public interface UserService extends IService<User> {
      * @param planetCode
      * @return
      */
-    long userRegister(String userAccount,String userPassword, String checkPassword,String planetCode);
-
+    Long userRegister(String userAccount, String userPassword, String checkPassword, String planetCode);
 
     /**
      * 用户登录
@@ -48,4 +49,24 @@ public interface UserService extends IService<User> {
      */
     int logout(HttpServletRequest request);
 
+    /**
+     * 修改用户信息
+     * @param userUpdateDTO
+     * @return
+     */
+    boolean userUpdate(UserUpdateDTO userUpdateDTO,HttpServletRequest request);
+
+    /**
+     * 修改用户密码
+     * @param userUpdatePasswordDTO
+     * @return
+     */
+    Boolean userUpdatePassword(UserUpdatePasswordDTO userUpdatePasswordDTO, HttpServletRequest request);
+
+    /**
+     * 删除用户
+     * @param id
+     * @return
+     */
+    Integer deleteUser(Long id);
 }

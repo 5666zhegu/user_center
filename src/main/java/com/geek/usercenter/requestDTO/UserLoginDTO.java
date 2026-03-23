@@ -1,8 +1,5 @@
 package com.geek.usercenter.requestDTO;
-
 import lombok.Data;
-
-import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
 
 @Data
