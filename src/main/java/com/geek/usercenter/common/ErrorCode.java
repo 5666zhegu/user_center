@@ -10,7 +10,9 @@ public enum ErrorCode {
     NULL_ERROR(40001,"传入数据为空",""),
     NOT_LOGIN(40100,"未登录",""),
     NO_AUTH(40101,"无权限",""),
-    SYSTEM_ERROR(50000,"系统内部异常","");
+    SYSTEM_ERROR(50000,"系统内部异常",""),
+    STATUS_ERROR(40002,"状态异常","");
+
 
 
 
