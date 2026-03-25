@@ -94,7 +94,6 @@
                 <version>${spring-boot.version}</version>
                 <configuration>
                     <mainClass>com.geek.usercenter.UserCenterApplication</mainClass>
-                    <skip>true</skip>
                 </configuration>
                 <executions>
                     <execution>
