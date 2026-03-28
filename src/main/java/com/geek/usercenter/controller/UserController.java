@@ -59,7 +59,7 @@ public class UserController {
         Long id = user.getId();
         Integer userStatus = user.getUserStatus();
         if(userStatus != 0){
-            throw new BusinessException(ErrorCode.STATUS_ERROR,"");
+            throw new BusinessException(ErrorCode.STATUS_ERROR,"账号已被封禁");
         }
         User newUser = userService.getById( id);
         User safeUser = userService.getSafeUser(newUser);

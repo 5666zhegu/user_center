@@ -27,7 +27,7 @@ public class AdminUserController {
     public BaseResponse<List<User>> searchUsers(String userName, HttpServletRequest request){
         boolean admin = isAdmin(request);
         if(!admin){
-            throw new BusinessException(ErrorCode.NO_AUTH,"未授权，不能执行");
+            throw new BusinessException(ErrorCode.NO_AUTH,"未经授权，不能执行");
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         if(StringUtils.isNotBlank(userName)){
@@ -42,12 +42,12 @@ public class AdminUserController {
     }
 
     @PostMapping("/delete")
-    public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request){
+    public BaseResponse<Boolean> deleteUser(@RequestParam Long id, HttpServletRequest request){
         boolean admin = isAdmin(request);
         if(!admin){
             throw new BusinessException(ErrorCode.NO_AUTH,"未授权，不能执行");
         }
-        if(id <= 0){
+        if(id <= 0 || id == null){
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"传入数据异常");
         }
         return ResultUtils.success(userService.removeById(id));
@@ -58,6 +58,10 @@ public class AdminUserController {
         User user = (User) userObj;
         if(user == null){
             throw new BusinessException(ErrorCode.NOT_LOGIN,"未查询到登陆状态，登陆状态为空");
+        }
+        Long id = user.getId();
+        if(userService.query().eq("id", id).eq("userStatus",1).count() > 0){
+            throw new BusinessException(ErrorCode.STATUS_ERROR,"该管理员被封禁");
         }
         Integer userRole = user.getUserRole();
         if(userRole != ADMIN_ROLE){
