@@ -133,6 +133,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             throw new BusinessException(ErrorCode.NOT_LOGIN,"用户未登录" );
         }
         Long id = loginUser.getId();
+        if(query().eq("id",id).eq("userStatus",1).count() > 0){
+            logout(request);
+            throw new BusinessException(ErrorCode.STATUS_ERROR,"用户被封禁");
+        }
         String userName = userUpdateDTO.getUserName();
         if(userName.length() < 2 || userName.length() > 32){
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户昵称长度不符合要求");
@@ -157,6 +161,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public Boolean userUpdatePassword(UserUpdatePasswordDTO userUpdatePasswordDTO, HttpServletRequest request) {
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User user = (User) userObj;
+        if(user == null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN,"用户未登录");
+        }
+        Long id = user.getId();
+        if(query().eq("id",id).eq("userStatus",1).count() > 0){
+            logout(request);
+            throw new BusinessException(ErrorCode.STATUS_ERROR,"用户被封禁");
+        }
         String oldPassword = userUpdatePasswordDTO.getOldPassword();
         String newPassword = userUpdatePasswordDTO.getNewPassword();
         String checkPassword = userUpdatePasswordDTO.getCheckPassword();
@@ -172,16 +186,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if(!newPassword.equals(checkPassword)){
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"两次输入的密码不一致");
         }
-        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-        User user = (User) userObj;
-        if(user == null){
-            throw new BusinessException(ErrorCode.NOT_LOGIN,"用户未登录");
-        }
-        Long id = user.getId();
         String MD5OldPassword = DigestUtils.md5DigestAsHex((oldPassword + SALT).getBytes());
         User user1 = query().eq("id", id).eq("userPassword", MD5OldPassword).one();
         if (user1 == null){
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"原密码错误");
+        }
+        if(user1.getUserStatus() != 0){
+            throw new BusinessException(ErrorCode.STATUS_ERROR,"账号已被封禁");
         }
         String MD5NewPassword = DigestUtils.md5DigestAsHex((newPassword + SALT).getBytes());
         boolean update = update().set("userPassword", MD5NewPassword).eq("id", id).update();
