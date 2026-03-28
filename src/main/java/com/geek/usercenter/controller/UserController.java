@@ -106,6 +106,12 @@ public class UserController {
         if(userUpdatePasswordDTO == null){
             throw new BusinessException(ErrorCode.NULL_ERROR,"传入的更新信息为空");
         }
+        String oldPassword = userUpdatePasswordDTO.getOldPassword();
+        String newPassword = userUpdatePasswordDTO.getNewPassword();
+        String checkPassword = userUpdatePasswordDTO.getCheckPassword();
+        if (StringUtils.isAnyBlank(oldPassword, newPassword, checkPassword)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"传入参数存在空值");
+        }
         Boolean updatePassword = userService.userUpdatePassword(userUpdatePasswordDTO, request);
         return ResultUtils.success(updatePassword);
 
@@ -120,8 +126,11 @@ public class UserController {
             throw new BusinessException(ErrorCode.NOT_LOGIN,"未查询到登陆状态，登陆状态为空");
         }
         Long id = user.getId();
-        Integer result = userService.deleteUser(id);
+        Boolean result = userService.removeById(id);
+        if(!result){
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"删除用户失败");
+        }
         request.getSession().removeAttribute(USER_LOGIN_STATE);
-        return ResultUtils.success(result);
+        return ResultUtils.success(id.intValue());
     }
 }
