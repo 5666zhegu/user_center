@@ -68,5 +68,4 @@ public interface UserService extends IService<User> {
      * @param id
      * @return
      */
-    Integer deleteUser(Long id);
 }

@@ -174,9 +174,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         String oldPassword = userUpdatePasswordDTO.getOldPassword();
         String newPassword = userUpdatePasswordDTO.getNewPassword();
         String checkPassword = userUpdatePasswordDTO.getCheckPassword();
-        if (StringUtils.isAnyBlank(oldPassword, newPassword, checkPassword)){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"传入参数存在空值");
-        }
+
         if(oldPassword.length() < 8){
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"传入旧密码过短");
         }
@@ -191,9 +189,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (user1 == null){
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"原密码错误");
         }
-        if(user1.getUserStatus() != 0){
-            throw new BusinessException(ErrorCode.STATUS_ERROR,"账号已被封禁");
-        }
         String MD5NewPassword = DigestUtils.md5DigestAsHex((newPassword + SALT).getBytes());
         boolean update = update().set("userPassword", MD5NewPassword).eq("id", id).update();
         if(!update){
@@ -202,16 +197,4 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return update;
     }
 
-    @Override
-    public Integer deleteUser(Long id) {
-        User user = query().eq("id", id).one();
-        if(user == null){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户不存在");
-        }
-            boolean delete = this.removeById(id);
-        if(!delete){
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"删除用户失败");
-        }
-        return id.intValue();
-    }
 }
