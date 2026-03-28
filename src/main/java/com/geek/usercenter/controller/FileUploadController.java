@@ -7,6 +7,8 @@ import com.geek.usercenter.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
@@ -18,7 +20,7 @@ import java.util.UUID;
 public class FileUploadController {
 
     @PostMapping("/upload")
-    public BaseResponse<String> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
+    public BaseResponse<String> uploadFile(@RequestParam("file") MultipartFile file, HttpServletRequest request) throws IOException {
         if(file.isEmpty()){
             throw new BusinessException(ErrorCode.NULL_ERROR,"传入的不是有效文件");
         }
@@ -34,7 +36,14 @@ public class FileUploadController {
         String uuid = UUID.randomUUID().toString().replace("-", "");
         String newFileName = uuid.substring(0,8) + suffix;
 
-        String uploadDir = "D:/code/user-center/";
+        String uploadDir;
+        String os = System.getProperty("os.name");
+        if(os.toLowerCase().startsWith("win")){
+            uploadDir = "D:/code/user-center/";
+        }else{
+            uploadDir = "/usr/local/user-center/upload/";
+        }
+
         File dest = new File(uploadDir,newFileName);
 
         if(!dest.getParentFile().exists()){
@@ -43,8 +52,20 @@ public class FileUploadController {
 
         file.transferTo(dest);
 
-        String url = "http://localhost:8080/api/upload/" + newFileName;
+        String ip = request.getServerName();
+        int port;
+
+        if (ip.equals("localhost")) {
+            port = 8000;
+        }
+
+        else {
+            port = 80;
+        }
+
+        String url = "http://" + ip + ":" + port + "/api/upload/" + newFileName;
         return ResultUtils.success(url);
+
     }
 
 
