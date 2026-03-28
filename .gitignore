@@ -34,6 +34,6 @@ build/
 
 ### 敏感配置类信息 ###
 src/main/resources/application-dev.yml
-
+src/main/resources/application-prod.yml
 # 过滤 src/test 目录下的所有文件（包含所有测试类、测试配置）
 /src/test/
